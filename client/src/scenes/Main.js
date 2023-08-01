@@ -198,7 +198,7 @@ export class Main extends Phaser.Scene {
     var card = this.hands[i].find((card) => card.code === data.card);
 
     if (card === undefined) {
-      const idx = Math.floor(Math.random() * this.hands[i].length);
+      const idx = this.hands[i].findIndex((card) => card.code === -1);
       const discard = this.hands[i][idx];
       card = this.createCard({
         x: discard.x,
@@ -306,8 +306,8 @@ export class Main extends Phaser.Scene {
         face: 1,
         angle: card.angle,
       });
-      card.code = code;
       card.destroy();
+      newCard.code = reveal(code);
       newCard.flip.flip();
       this.hands[player][idx] = newCard;
     });
