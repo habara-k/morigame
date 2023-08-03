@@ -190,10 +190,10 @@ export class Main extends Phaser.Scene {
 
   Fetch(data) {
     this.clear();
-    this.createChat(0, "MORI!!");
-    this.createChat(1, "MORI!!");
-    this.createChat(2, "MORI!!");
-    this.createChat(3, "MORI!!");
+    // this.createChat(0, "MORI!!");
+    // this.createChat(1, "MORI!!");
+    // this.createChat(2, "MORI!!");
+    // this.createChat(3, "MORI!!");
 
     const top = this.createCard({
       x: this.cfg.trash.x,
