@@ -207,7 +207,6 @@ export class Main extends Phaser.Scene {
       x: this.cfg.trash.x,
       y: this.cfg.trash.y,
       name: (data.top !== -1 ? suit(data.top) + num(data.top) : "empty"),
-      name: suit(data.top) + num(data.top),
       face: 0,
       angle: 0,
     });
