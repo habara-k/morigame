@@ -406,7 +406,7 @@ export class Main extends Phaser.Scene {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     this.ws = new WebSocket(
-      `${protocol === "http:" ? "ws" : "wss"}://${hostname}:80/ws?room=${
+      `${protocol === "http:" ? "ws" : "wss"}://${hostname}/ws?room=${
         searchParams.get("room")
       }`,
     );
