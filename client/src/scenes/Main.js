@@ -171,8 +171,10 @@ export class Main extends Phaser.Scene {
     this.clearChat();
   }
   clearChat() {
-    this.chatbox.forEach((chat) => chat.destroy());
-    this.chatbox = [];
+    this.chatbox.forEach((chat) => {
+      if (chat !== null) chat.destroy();
+    });
+    this.chatbox = [null, null, null, null];
   }
   createChat(player, msg) {
     const cfg = this.cfg.hands[player];
@@ -185,7 +187,12 @@ export class Main extends Phaser.Scene {
       },
     ).setOrigin(0.5)
       .setTint(0x020202);
-    this.chatbox.push(chat);
+
+    const old = this.chatbox[player];
+    if (old !== null) {
+      old.destroy();
+    }
+    this.chatbox[player] = chat;
   }
 
   Fetch(data) {
@@ -332,6 +339,8 @@ export class Main extends Phaser.Scene {
     if (i !== 0) {
       this.revealOthersHand(i, data.cards);
     }
+    const loser = (data.loser - this.id + 4) % 4;
+    this.createChat(loser, "F**K");
     this.moriQueue.push(i);
   }
 
@@ -456,7 +465,7 @@ export class Main extends Phaser.Scene {
     this.hands = [[], [], [], []];
     this.trash = [];
     this.moriQueue = [];
-    this.chatbox = [];
+    this.chatbox = [null, null, null, null];
     const deck = this.createCard({
       ...this.cfg.deck,
       face: 1,
