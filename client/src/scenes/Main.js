@@ -202,14 +202,17 @@ export class Main extends Phaser.Scene {
     // this.createChat(2, "MORI!!");
     // this.createChat(3, "MORI!!");
 
-    const top = this.createCard({
-      x: this.cfg.trash.x,
-      y: this.cfg.trash.y,
-      name: (data.top !== -1 ? suit(data.top) + num(data.top) : "empty"),
-      face: 0,
-      angle: 0,
-    });
-    this.trash.push(top);
+    if (data.top !== -1) {
+      const top = this.createCard({
+        x: this.cfg.trash.x,
+        y: this.cfg.trash.y,
+        // name: (data.top !== -1 ? suit(data.top) + num(data.top) : "empty"),
+        name: suit(data.top) + num(data.top),
+        face: 0,
+        angle: 0,
+      });
+      this.trash.push(top);
+    }
 
     data.hands[this.id].forEach((code) => {
       const card = this.createMyCard(code);
@@ -463,7 +466,6 @@ export class Main extends Phaser.Scene {
     };
 
     this.hands = [[], [], [], []];
-    this.trash = [];
     this.moriQueue = [];
     this.chatbox = [null, null, null, null];
     const deck = this.createCard({
@@ -475,6 +477,15 @@ export class Main extends Phaser.Scene {
       this.ws.send(`{"type":"flip"}`);
       this.ws.send(`{"type":"draw"}`);
     });
+    this.trash = [];
+    const top = this.createCard({
+      x: this.cfg.trash.x,
+      y: this.cfg.trash.y,
+      name: "empty",
+      face: 0,
+      angle: 0,
+    });
+    this.trash.push(top);
     // this.buttons = [];
     // this.createButton(
     //   this.cfg.button.fold.x,
