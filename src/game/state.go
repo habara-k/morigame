@@ -367,6 +367,10 @@ func (s *State) burst(p Player, send chan<- *Event) {
 }
 
 func (s *State) Mori(p Player, send chan<- *Event) {
+	loser := prev(s.turn)
+	if loser == p {
+		return
+	}
 	if find(s.moriQueue, p) != -1 {
 		return
 	}

@@ -1,5 +1,11 @@
 import Phaser from "phaser";
 
+const icons = [
+  "shinomiya",
+  "kaicho",
+  "hayasaka",
+  "keichang",
+];
 const suits = ["s", "h", "d", "c"];
 const nums = [
   "-",
@@ -44,6 +50,14 @@ export class Main extends Phaser.Scene {
       "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexperspectiveimageplugin.min.js",
       true,
     );
+    this.load.plugin(
+      "rexcirclemaskimageplugin",
+      "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcirclemaskimageplugin.min.js",
+      true,
+    );
+    icons.forEach((icon) => {
+      this.load.image(icon, `icons/${icon}.jpg`);
+    });
     suits.forEach((suit) =>
       nums.slice(1).forEach((num) => {
         const card = suit + num;
@@ -54,6 +68,24 @@ export class Main extends Phaser.Scene {
     this.load.image("empty", "cards/empty.png");
     this.canvas = this.sys.game.canvas;
     this.cfg = {
+      icon: [
+        {
+          x: this.canvas.width / 2 - 220,
+          y: this.canvas.height / 2 + 130,
+        },
+        {
+          x: this.canvas.width / 2 + 420,
+          y: this.canvas.height / 2,
+        },
+        {
+          x: this.canvas.width / 2 + 200,
+          y: this.canvas.height / 2 - 140,
+        },
+        {
+          x: this.canvas.width / 2 - 420,
+          y: this.canvas.height / 2,
+        },
+      ],
       deck: {
         x: this.canvas.width / 2 + 100,
         y: this.canvas.height / 2,
@@ -62,22 +94,22 @@ export class Main extends Phaser.Scene {
         x: this.canvas.width / 2 - 100,
         y: this.canvas.height / 2,
       },
-      button: {
-        fold: {
-          x: this.canvas.width - 250,
-          y: this.canvas.height - 50,
-        },
-        counter: {
-          x: this.canvas.width - 100,
-          y: this.canvas.height - 50,
-        },
-      },
+      // button: {
+      //   fold: {
+      //     x: this.canvas.width - 250,
+      //     y: this.canvas.height - 50,
+      //   },
+      //   counter: {
+      //     x: this.canvas.width - 100,
+      //     y: this.canvas.height - 50,
+      //   },
+      // },
       hands: [
         {
           x: this.canvas.width / 2,
           y: this.canvas.height - 100,
           align: {
-            dx: 1.4,
+            dx: 1.7,
             dy: 0,
           },
           msg: {
@@ -94,7 +126,7 @@ export class Main extends Phaser.Scene {
             dy: 1,
           },
           msg: {
-            dx: 1.6,
+            dx: 2.2,
             dy: 0,
           },
           angle: -90,
@@ -120,7 +152,7 @@ export class Main extends Phaser.Scene {
             dy: -1,
           },
           msg: {
-            dx: -1.6,
+            dx: -2.2,
             dy: 0,
           },
           angle: 90,
@@ -149,7 +181,7 @@ export class Main extends Phaser.Scene {
       cfg.y + cfg.msg.dy * 130,
       msg,
       {
-        fontSize: "50px",
+        fontSize: "40px",
       },
     ).setOrigin(0.5)
       .setTint(0x020202);
@@ -158,17 +190,19 @@ export class Main extends Phaser.Scene {
 
   Fetch(data) {
     this.clear();
+    this.createChat(0, "MORI!!");
+    this.createChat(1, "MORI!!");
+    this.createChat(2, "MORI!!");
+    this.createChat(3, "MORI!!");
 
-    if (data.top !== -1) {
-      const top = this.createCard({
-        x: this.cfg.trash.x,
-        y: this.cfg.trash.y,
-        name: suit(data.top) + num(data.top),
-        face: 0,
-        angle: 0,
-      });
-      this.trash.push(top);
-    }
+    const top = this.createCard({
+      x: this.cfg.trash.x,
+      y: this.cfg.trash.y,
+      name: (data.top !== -1 ? suit(data.top) + num(data.top) : "empty"),
+      face: 0,
+      angle: 0,
+    });
+    this.trash.push(top);
 
     data.hands[this.id].forEach((code) => {
       const card = this.createMyCard(code);
@@ -193,7 +227,6 @@ export class Main extends Phaser.Scene {
   }
 
   Discard(data) {
-    this.clearChat();
     const i = (data.player - this.id + 4) % 4;
     var card = this.hands[i].find((card) => card.code === data.card);
 
@@ -212,6 +245,12 @@ export class Main extends Phaser.Scene {
       });
       discard.destroy();
       this.hands[i][idx] = card;
+    }
+
+    if (i === 0) {
+      card.setInteractive().on("pointerup", () => {
+        this.ws.send(`{"type":"counter"}`);
+      });
     }
 
     this.moveToTrash(card);
@@ -244,7 +283,6 @@ export class Main extends Phaser.Scene {
       this.hands[i] = [];
     });
     this.moriQueue = [];
-    this.clearChat();
 
     const i = (data.player - this.id + 4) % 4;
     if (i === 0) {
@@ -255,12 +293,23 @@ export class Main extends Phaser.Scene {
   }
 
   Flip(data) {
+    this.clearChat();
     const top = this.createCard({
       ...this.cfg.deck,
       name: suit(data.card) + num(data.card),
       face: 1,
     });
     this.moveToTrash(top);
+    const i = (data.player - this.id + 4) % 4;
+    if (i !== 0) {
+      top.setInteractive().on("pointerup", () => {
+        this.ws.send(`{"type":"mori"}`);
+      });
+    } else {
+      top.setInteractive().on("pointerup", () => {
+        this.ws.send(`{"type":"counter"}`);
+      });
+    }
   }
 
   Mori(data) {
@@ -340,12 +389,24 @@ export class Main extends Phaser.Scene {
     this.hands[i] = [];
   }
 
+  setupIcons() {
+    icons.forEach((icon, i) => {
+      const a = this.make.rexCircleMaskImage({
+        x: this.cfg.icon[(i + this.id) % 4].x,
+        y: this.cfg.icon[(i + this.id) % 4].y,
+        key: icon,
+        maskType: 0,
+      });
+      a.setScale(0.8);
+    });
+  }
+
   create() {
     const searchParams = new URLSearchParams(window.location.search);
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     this.ws = new WebSocket(
-      `${protocol === "http:" ? "ws" : "wss"}://${hostname}/ws?room=${
+      `${protocol === "http:" ? "ws" : "wss"}://${hostname}:80/ws?room=${
         searchParams.get("room")
       }`,
     );
@@ -355,6 +416,7 @@ export class Main extends Phaser.Scene {
       switch (data.type) {
         case "join":
           this.id = data.id;
+          this.setupIcons();
           break;
         case "fetch":
           this.Fetch(data);
@@ -404,23 +466,23 @@ export class Main extends Phaser.Scene {
       this.ws.send(`{"type":"flip"}`);
       this.ws.send(`{"type":"draw"}`);
     });
-    this.buttons = [];
-    this.createButton(
-      this.cfg.button.fold.x,
-      this.cfg.button.fold.y,
-      "FOLD",
-      () => {
-        this.ws.send(`{"type":"fold"}`);
-      },
-    );
-    this.createButton(
-      this.cfg.button.counter.x,
-      this.cfg.button.counter.y,
-      "COUNTER",
-      () => {
-        this.ws.send(`{"type":"counter"}`);
-      },
-    );
+    // this.buttons = [];
+    // this.createButton(
+    //   this.cfg.button.fold.x,
+    //   this.cfg.button.fold.y,
+    //   "FOLD",
+    //   () => {
+    //     this.ws.send(`{"type":"fold"}`);
+    //   },
+    // );
+    // this.createButton(
+    //   this.cfg.button.counter.x,
+    //   this.cfg.button.counter.y,
+    //   "COUNTER",
+    //   () => {
+    //     this.ws.send(`{"type":"counter"}`);
+    //   },
+    // );
   }
   createButton(x, y, text, onClick) {
     const button = this.add.text(
@@ -457,6 +519,9 @@ export class Main extends Phaser.Scene {
       face: code === -1 ? 1 : 0,
     });
     card.code = code;
+    card.setInteractive().on("pointerup", () => {
+      this.ws.send(`{"type":"mori"}`);
+    });
     return card;
   }
   moveToTrash(card) {
@@ -491,8 +556,8 @@ export class Main extends Phaser.Scene {
     hand.forEach((h, idx) => {
       this.tweens.add({
         targets: h,
-        x: cfg.x + cfg.align.dx * 100 * (idx - (hand.length - 1) / 2),
-        y: cfg.y + cfg.align.dy * 100 * (idx - (hand.length - 1) / 2),
+        x: cfg.x + cfg.align.dx * 80 * (idx - (hand.length - 1) / 2),
+        y: cfg.y + cfg.align.dy * 80 * (idx - (hand.length - 1) / 2),
         angle: cfg.angle,
         ease: "Cubic",
       });
@@ -502,8 +567,8 @@ export class Main extends Phaser.Scene {
     const cfg = this.cfg.hands[player];
     const hand = this.hands[player];
     hand.forEach((h, idx) => {
-      h.setX(cfg.x + cfg.align.dx * 100 * (idx - (hand.length - 1) / 2));
-      h.setY(cfg.y + cfg.align.dy * 100 * (idx - (hand.length - 1) / 2));
+      h.setX(cfg.x + cfg.align.dx * 80 * (idx - (hand.length - 1) / 2));
+      h.setY(cfg.y + cfg.align.dy * 80 * (idx - (hand.length - 1) / 2));
       h.setAngle(cfg.angle);
     });
   }
