@@ -74,7 +74,7 @@ export class Main extends Phaser.Scene {
           y: this.canvas.height / 2 + 130,
         },
         {
-          x: this.canvas.width / 2 + 420,
+          x: this.canvas.width / 2 - 420,
           y: this.canvas.height / 2,
         },
         {
@@ -82,7 +82,7 @@ export class Main extends Phaser.Scene {
           y: this.canvas.height / 2 - 140,
         },
         {
-          x: this.canvas.width / 2 - 420,
+          x: this.canvas.width / 2 + 420,
           y: this.canvas.height / 2,
         },
       ],
