@@ -528,7 +528,6 @@ func (s *State) Fetch(p Player, send chan<- *Event) {
 		Body: &EventBodyFetch{
 			top:       top,
 			hands:     hands,
-			mode:      s.mode,
 			moriQueue: moriQueue,
 		},
 	}

@@ -46,7 +46,6 @@ type EventBodyCounter struct {
 type EventBodyFetch struct {
 	top       Card
 	hands     [N_PLAYER][]Card
-	mode      Mode
 	moriQueue []Player
 }
 
@@ -180,13 +179,11 @@ func (e *EventBodyFetch) MarshalJSON() ([]byte, error) {
 		Type      eventType        `json:"type"`
 		Top       Card             `json:"top"`
 		Hands     [N_PLAYER][]Card `json:"hands"`
-		Mode      Mode             `json:"mode"`
 		MoriQueue []Player         `json:"moriQueue"`
 	}{
 		Type:      e.eventType(),
 		Top:       e.top,
 		Hands:     e.hands,
-		Mode:      e.mode,
 		MoriQueue: e.moriQueue,
 	})
 }

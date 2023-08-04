@@ -9,7 +9,9 @@ const config = {
   backgroundColor: 0xcdcdcd,
 
   scale: {
+    // mode: Phaser.Scale.NONE,
     mode: Phaser.Scale.FIT,
+    // mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
 
