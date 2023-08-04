@@ -74,7 +74,7 @@ export class Main extends Phaser.Scene {
           y: this.canvas.height / 2 + 130,
         },
         {
-          x: this.canvas.width / 2 + 420,
+          x: this.canvas.width / 2 - 420,
           y: this.canvas.height / 2,
         },
         {
@@ -82,7 +82,7 @@ export class Main extends Phaser.Scene {
           y: this.canvas.height / 2 - 140,
         },
         {
-          x: this.canvas.width / 2 - 420,
+          x: this.canvas.width / 2 + 420,
           y: this.canvas.height / 2,
         },
       ],
@@ -403,8 +403,8 @@ export class Main extends Phaser.Scene {
   setupIcons() {
     icons.forEach((icon, i) => {
       const a = this.make.rexCircleMaskImage({
-        x: this.cfg.icon[(i + this.id) % 4].x,
-        y: this.cfg.icon[(i + this.id) % 4].y,
+        x: this.cfg.icon[(i - this.id + 4) % 4].x,
+        y: this.cfg.icon[(i - this.id + 4) % 4].y,
         key: icon,
         maskType: 0,
       });
