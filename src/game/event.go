@@ -47,6 +47,8 @@ type EventBodyFetch struct {
 	top       Card
 	hands     [N_PLAYER][]Card
 	moriQueue []Player
+	kill      [N_PLAYER]int
+	death     [N_PLAYER]int
 }
 
 func (e *EventBodyDiscard) eventType() eventType {
@@ -180,10 +182,14 @@ func (e *EventBodyFetch) MarshalJSON() ([]byte, error) {
 		Top       Card             `json:"top"`
 		Hands     [N_PLAYER][]Card `json:"hands"`
 		MoriQueue []Player         `json:"moriQueue"`
+		Kill      [N_PLAYER]int    `json:"kill"`
+		Death     [N_PLAYER]int    `json:"death"`
 	}{
 		Type:      e.eventType(),
 		Top:       e.top,
 		Hands:     e.hands,
 		MoriQueue: e.moriQueue,
+		Kill:      e.kill,
+		Death:     e.death,
 	})
 }

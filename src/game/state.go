@@ -86,6 +86,8 @@ type State struct {
 	turn      Player
 	loser     Player
 	moriQueue []Player
+	kill      [N_PLAYER]int
+	death     [N_PLAYER]int
 }
 
 func newState() *State {
@@ -97,6 +99,8 @@ func newState() *State {
 		mode:  ModeInit,
 		turn:  -1,
 		loser: -1,
+		kill:  [N_PLAYER]int{0, 0, 0, 0},
+		death: [N_PLAYER]int{0, 0, 0, 0},
 	}
 }
 
@@ -448,6 +452,13 @@ func (s *State) Fold(p Player, send chan<- *Event) {
 
 	s.loser = loser
 	for _, p := range s.moriQueue {
+		if len(s.hand[p]) == 1 {
+			s.kill[p] += 2
+			s.death[loser] += 2
+		} else {
+			s.kill[p] += 1
+			s.death[loser] += 1
+		}
 		for _, h := range s.hand[p] {
 			s.trash = append(s.trash, unreveal(h))
 		}
@@ -484,6 +495,21 @@ func (s *State) Counter(p Player, send chan<- *Event) {
 			},
 		}
 	}
+
+	mori := 0
+	for _, i := range s.moriQueue {
+		if len(s.hand[i]) == 1 {
+			mori += 2
+		} else {
+			mori += 1
+		}
+	}
+	mori *= 2
+	if len(s.hand[p]) == 2 {
+		mori *= 2
+	}
+	s.kill[winner] += mori
+	s.death[s.loser] += mori
 
 	for _, h := range s.hand[p] {
 		s.trash = append(s.trash, unreveal(h))
@@ -523,12 +549,23 @@ func (s *State) Fetch(p Player, send chan<- *Event) {
 		moriQueue = append(moriQueue, p)
 	}
 
+	kill := [N_PLAYER]int{}
+	for i, k := range s.kill {
+		kill[i] = k
+	}
+	death := [N_PLAYER]int{}
+	for i, d := range s.death {
+		death[i] = d
+	}
+
 	send <- &Event{
 		Observer: p,
 		Body: &EventBodyFetch{
 			top:       top,
 			hands:     hands,
 			moriQueue: moriQueue,
+			kill:      kill,
+			death:     death,
 		},
 	}
 }
