@@ -70,20 +70,24 @@ export class Main extends Phaser.Scene {
     this.cfg = {
       icon: [
         {
-          x: this.canvas.width / 2 - 220,
+          x: this.canvas.width / 2 - 230,
           y: this.canvas.height / 2 + 130,
+          dx: 1,
         },
         {
           x: this.canvas.width / 2 - 420,
           y: this.canvas.height / 2,
+          dx: 1,
         },
         {
           x: this.canvas.width / 2 + 200,
           y: this.canvas.height / 2 - 140,
+          dx: -1,
         },
         {
           x: this.canvas.width / 2 + 420,
           y: this.canvas.height / 2,
+          dx: -1,
         },
       ],
       deck: {
@@ -94,16 +98,6 @@ export class Main extends Phaser.Scene {
         x: this.canvas.width / 2 - 100,
         y: this.canvas.height / 2,
       },
-      // button: {
-      //   fold: {
-      //     x: this.canvas.width - 250,
-      //     y: this.canvas.height - 50,
-      //   },
-      //   counter: {
-      //     x: this.canvas.width - 100,
-      //     y: this.canvas.height - 50,
-      //   },
-      // },
       hands: [
         {
           x: this.canvas.width / 2,
@@ -126,7 +120,7 @@ export class Main extends Phaser.Scene {
             dy: 1,
           },
           msg: {
-            dx: 2.2,
+            dx: 2.3,
             dy: 0,
           },
           angle: -90,
@@ -152,7 +146,7 @@ export class Main extends Phaser.Scene {
             dy: -1,
           },
           msg: {
-            dx: -2.2,
+            dx: -2.3,
             dy: 0,
           },
           angle: 90,
@@ -169,6 +163,14 @@ export class Main extends Phaser.Scene {
     this.trash = [];
     this.moriQueue = [];
     this.clearChat();
+    this.kill.forEach((kill) => {
+      if (kill !== null) kill.destroy();
+    });
+    this.death.forEach((death) => {
+      if (death !== null) death.destroy();
+    });
+    this.n_kill = [0, 0, 0, 0];
+    this.n_death = [0, 0, 0, 0];
   }
   clearChat() {
     this.chatbox.forEach((chat) => {
@@ -179,8 +181,8 @@ export class Main extends Phaser.Scene {
   createChat(player, msg) {
     const cfg = this.cfg.hands[player];
     const chat = this.add.text(
-      cfg.x + cfg.msg.dx * 130,
-      cfg.y + cfg.msg.dy * 130,
+      cfg.x + cfg.msg.dx * 140,
+      cfg.y + cfg.msg.dy * 140,
       msg,
       {
         fontSize: "40px",
@@ -197,21 +199,16 @@ export class Main extends Phaser.Scene {
 
   Fetch(data) {
     this.clear();
-    // this.createChat(0, "MORI!!");
-    // this.createChat(1, "MORI!!");
-    // this.createChat(2, "MORI!!");
-    // this.createChat(3, "MORI!!");
-
-    // if (data.top !== -1) {
-    const top = this.createCard({
-      x: this.cfg.trash.x,
-      y: this.cfg.trash.y,
-      name: (data.top !== -1 ? suit(data.top) + num(data.top) : "empty"),
-      face: 0,
-      angle: 0,
-    });
-    this.trash.push(top);
-    // }
+    if (data.top !== -1) {
+      const top = this.createCard({
+        x: this.cfg.trash.x,
+        y: this.cfg.trash.y,
+        name: suit(data.top) + num(data.top),
+        face: 0,
+        angle: 0,
+      });
+      this.trash.push(top);
+    }
 
     data.hands[this.id].forEach((code) => {
       const card = this.createMyCard(code);
@@ -232,6 +229,42 @@ export class Main extends Phaser.Scene {
       const i = (p - this.id + 4) % 4;
       this.createChat(i, "MORI!!");
       this.moriQueue.push(i);
+    });
+
+    this.n_kill = [0, 0, 0, 0];
+    this.n_death = [0, 0, 0, 0];
+    data.kill.forEach((kill, p) => {
+      const i = (p - this.id + 4) % 4;
+      this.n_kill[i] = kill;
+    });
+    data.death.forEach((death, p) => {
+      const i = (p - this.id + 4) % 4;
+      this.n_death[i] = death;
+    });
+
+    this.n_kill.forEach((n_kill, i) => {
+      const cfg = this.cfg.icon[i];
+      this.kill[i] = this.add.text(
+        cfg.x + cfg.dx * 70,
+        cfg.y - 15,
+        `+${n_kill}`,
+        {
+          fontSize: "30px",
+        },
+      ).setOrigin(0.5)
+        .setTint(0x020202);
+    });
+    this.n_death.forEach((n_death, i) => {
+      const cfg = this.cfg.icon[i];
+      this.death[i] = this.add.text(
+        cfg.x + cfg.dx * 70,
+        cfg.y + 15,
+        `-${n_death}`,
+        {
+          fontSize: "30px",
+        },
+      ).setOrigin(0.5)
+        .setTint(0x020202);
     });
   }
 
@@ -331,8 +364,16 @@ export class Main extends Phaser.Scene {
   }
 
   Fold(data) {
-    const i = (data.player - this.id + 4) % 4;
-    this.createChat(i, "FOLD..");
+    const loser = (data.player - this.id + 4) % 4;
+    this.createChat(loser, "FOLD..");
+
+    this.moriQueue.forEach((i) => {
+      const mori = this.hands[i].length === 1 ? 2 : 1;
+      this.n_kill[i] += mori;
+      this.kill[i].setText(`+${this.n_kill[i]}`);
+      this.n_death[loser] += mori;
+    });
+    this.death[loser].setText(`-${this.n_death[loser]}`);
   }
 
   Counter(data) {
@@ -343,6 +384,19 @@ export class Main extends Phaser.Scene {
     }
     const loser = (data.loser - this.id + 4) % 4;
     this.createChat(loser, "F**K");
+
+    let mori = 0;
+    this.moriQueue.forEach((i) => {
+      mori += this.hands[i].length === 1 ? 2 : 1;
+    });
+    mori *= 2;
+    if (this.hands[i].length === 1) mori *= 2;
+
+    this.n_kill[i] += mori;
+    this.kill[i].setText(`+${this.n_kill[i]}`);
+    this.n_death[loser] += mori;
+    this.death[loser].setText(`-${this.n_death[loser]}`);
+
     this.moriQueue.push(i);
   }
 
@@ -369,6 +423,9 @@ export class Main extends Phaser.Scene {
       card.destroy();
       newCard.code = reveal(code);
       newCard.flip.flip();
+      newCard.setInteractive().on("pointerup", () => {
+        this.ws.send(`{"type":"mori"}`);
+      });
       this.hands[player][idx] = newCard;
     });
     this.arangeMove(player);
@@ -477,31 +534,9 @@ export class Main extends Phaser.Scene {
       this.ws.send(`{"type":"draw"}`);
     });
     this.trash = [];
-    const top = this.createCard({
-      x: this.cfg.trash.x,
-      y: this.cfg.trash.y,
-      name: "empty",
-      face: 0,
-      angle: 0,
-    });
-    this.trash.push(top);
-    // this.buttons = [];
-    // this.createButton(
-    //   this.cfg.button.fold.x,
-    //   this.cfg.button.fold.y,
-    //   "FOLD",
-    //   () => {
-    //     this.ws.send(`{"type":"fold"}`);
-    //   },
-    // );
-    // this.createButton(
-    //   this.cfg.button.counter.x,
-    //   this.cfg.button.counter.y,
-    //   "COUNTER",
-    //   () => {
-    //     this.ws.send(`{"type":"counter"}`);
-    //   },
-    // );
+
+    this.kill = [null, null, null, null];
+    this.death = [null, null, null, null];
   }
   createButton(x, y, text, onClick) {
     const button = this.add.text(
