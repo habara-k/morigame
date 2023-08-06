@@ -72,7 +72,7 @@ export class Main extends Phaser.Scene {
         {
           x: this.canvas.width / 2 - 230,
           y: this.canvas.height / 2 + 130,
-          dx: 1,
+          dx: -1,
         },
         {
           x: this.canvas.width / 2 - 420,
@@ -432,6 +432,8 @@ export class Main extends Phaser.Scene {
   }
   Reveal(data) {
     const i = (data.player - this.id + 4) % 4;
+    this.n_death[i] += 2;
+    this.death[i].setText(`+${this.n_death[i]}`);
     if (i === 0) {
       this.revealMyHand();
     } else {
