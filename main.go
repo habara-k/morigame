@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/habara-k/morigame/src"
@@ -22,6 +23,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		ws.SetReadDeadline(time.Now().Add(time.Hour * 24))
+		ws.SetWriteDeadline(time.Now().Add(time.Hour * 24))
 		roomId := src.RoomId(r.FormValue("room"))
 		roomManager.Register <- &src.Registration{RoomId: roomId, Ws: ws}
 	})
