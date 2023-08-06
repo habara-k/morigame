@@ -432,8 +432,6 @@ export class Main extends Phaser.Scene {
   }
   Reveal(data) {
     const i = (data.player - this.id + 4) % 4;
-    this.n_death[i] += 2;
-    this.death[i].setText(`+${this.n_death[i]}`);
     if (i === 0) {
       this.revealMyHand();
     } else {
@@ -445,6 +443,8 @@ export class Main extends Phaser.Scene {
     if (i !== 0) {
       this.revealOthersHand(i, [data.card]);
     }
+    this.n_death[i] += 2;
+    this.death[i].setText(`-${this.n_death[i]}`);
 
     this.hands[i].forEach((card) => {
       this.tweens.add({
